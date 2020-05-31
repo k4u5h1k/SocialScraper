@@ -60,24 +60,26 @@ class ElapsedFuturesSession(FuturesSession):
 
 
 def print_info(title, info, color=True):
-    if color:
-        print(Style.BRIGHT + Fore.GREEN + "[" +
-            Fore.YELLOW + "*" +
-            Fore.GREEN + f"] {title}" +
-            Fore.WHITE + f" {info}" +
-            Fore.GREEN + " on:")
-    else:
-        print(f"[*] {title} {info} on:")
+    pass
+    # if color:
+    #     print(Style.BRIGHT + Fore.GREEN + "[" +
+    #         Fore.YELLOW + "*" +
+    #         Fore.GREEN + f"] {title}" +
+    #         Fore.WHITE + f" {info}" +
+    #         Fore.GREEN + " on:")
+    # else:
+    #     print(f"[*] {title} {info} on:")
 
 def print_error(err, errstr, var, verbose=False, color=True):
-    if color:
-        print(Style.BRIGHT + Fore.WHITE + "[" +
-            Fore.RED + "-" +
-            Fore.WHITE + "]" +
-            Fore.RED + f" {errstr}" +
-            Fore.YELLOW + f" {err if verbose else var}")
-    else:
-        print(f"[-] {errstr} {err if verbose else var}")
+    pass
+    # if color:
+    #     print(Style.BRIGHT + Fore.WHITE + "[" +
+    #         Fore.RED + "-" +
+    #         Fore.WHITE + "]" +
+    #         Fore.RED + f" {errstr}" +
+    #         Fore.YELLOW + f" {err if verbose else var}")
+    # else:
+    #     print(f"[-] {errstr} {err if verbose else var}")
 
 
 def format_response_time(response_time, verbose):
@@ -85,36 +87,39 @@ def format_response_time(response_time, verbose):
 
 
 def print_found(social_network, url, response_time, verbose=False, color=True):
-    if color:
-        print((Style.BRIGHT + Fore.WHITE + "[" +
-            Fore.GREEN + "+" +
-            Fore.WHITE + "]" +
-            format_response_time(response_time, verbose) +
-            Fore.GREEN + f" {social_network}:"), url)
-    else:
-        print(f"{social_network}: {url}")
+    pass
+    # if color:
+    #     print((Style.BRIGHT + Fore.WHITE + "[" +
+    #         Fore.GREEN + "+" +
+    #         Fore.WHITE + "]" +
+    #         format_response_time(response_time, verbose) +
+    #         Fore.GREEN + f" {social_network}:"), url)
+    # else:
+    #     print(f"{social_network}: {url}")
 
 def print_not_found(social_network, response_time, verbose=False, color=True):
-    if color:
-        print((Style.BRIGHT + Fore.WHITE + "[" +
-            Fore.RED + "-" +
-            Fore.WHITE + "]" +
-            format_response_time(response_time, verbose) +
-            Fore.GREEN + f" {social_network}:" +
-            Fore.YELLOW + " Not Found!"))
-    else:
-        print(f"[-]{format_response_time(response_time, verbose)} {social_network}: Not Found!")
+    pass
+    # if color:
+    #     print((Style.BRIGHT + Fore.WHITE + "[" +
+    #         Fore.RED + "-" +
+    #         Fore.WHITE + "]" +
+    #         format_response_time(response_time, verbose) +
+    #         Fore.GREEN + f" {social_network}:" +
+    #         Fore.YELLOW + " Not Found!"))
+    # else:
+    #     print(f"[-]{format_response_time(response_time, verbose)} {social_network}: Not Found!")
 
 def print_invalid(social_network, msg, color=True):
-    """Print invalid search result."""
-    if color:
-        print((Style.BRIGHT + Fore.WHITE + "[" +
-            Fore.RED + "-" +
-            Fore.WHITE + "]" +
-            Fore.GREEN + f" {social_network}:" +
-            Fore.YELLOW + f" {msg}"))
-    else:
-        print(f"[-] {social_network} {msg}")
+    pass
+    # """Print invalid search result."""
+    # if color:
+    #     print((Style.BRIGHT + Fore.WHITE + "[" +
+    #         Fore.RED + "-" +
+    #         Fore.WHITE + "]" +
+    #         Fore.GREEN + f" {social_network}:" +
+    #         Fore.YELLOW + f" {msg}"))
+    # else:
+    #     print(f"[-] {social_network} {msg}")
 
 
 def get_response(request_future, error_type, social_network, verbose=False, retry_no=None, color=True):
@@ -178,7 +183,7 @@ def sherlock(username, site_data, verbose=False, tor=False, unique_tor=False,
         response_text: Text that came back from request.  May be None if
                        there was an HTTP error when checking for existence.
     """
-    print_info("Checking username", username, color)
+    # print_info("Checking username", username, color)
 
     underlying_session = requests.session()
     underlying_request = requests.Request()
@@ -325,7 +330,7 @@ def sherlock(username, site_data, verbose=False, tor=False, unique_tor=False,
             error = net_info.get("errorMsg")
             # Checks if the error message is in the HTML
             if not error in r.text:
-                print_found(social_network, url, response_time, verbose, color)
+                # print_found(social_network, url, response_time, verbose, color)
                 exists = "yes"
             else:
                 if not print_found_only:
@@ -335,7 +340,7 @@ def sherlock(username, site_data, verbose=False, tor=False, unique_tor=False,
         elif error_type == "status_code":
             # Checks if the status code of the response is 2XX
             if not r.status_code >= 300 or r.status_code < 200:
-                print_found(social_network, url, response_time, verbose, color)
+                # print_found(social_network, url, response_time, verbose, color)
                 exists = "yes"
             else:
                 if not print_found_only:
@@ -349,7 +354,7 @@ def sherlock(username, site_data, verbose=False, tor=False, unique_tor=False,
             # code indicates that the request was successful (i.e. no 404, or
             # forward to some odd redirect).
             if 200 <= r.status_code < 300:
-                print_found(social_network, url, response_time, verbose, color)
+                # print_found(social_network, url, response_time, verbose, color)
                 exists = "yes"
             else:
                 if not print_found_only:
