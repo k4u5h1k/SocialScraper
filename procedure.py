@@ -24,29 +24,28 @@ import re
 import csv
 from time import sleep
 from urllib.parse import unquote
+from printing import colors
 
 #The next two lines are just to disable the stupid insecure request warning
 from urllib3.exceptions import InsecureRequestWarning
 packages.urllib3.disable_warnings(category = InsecureRequestWarning)
 
 class Scraping_Kit():
-    def __init__(self):
-        # self.target_email=email
-        check = '^[a-z0-9]+[\._]?[a-z0-9]+@\w+\.\w{2,3}$'
-        ran_once=False
-        self.target_email=""
-        if ran_once:
-            print("Invalid email please try again")
-        while not re.search(check, self.target_email):
-            self.target_email=input("Please enter target email : ")
-            ran_once=True
+    def __init__(self, email):
+        self.target_email=email
+        self.reprinter = Reprinter()
+        db_json = {}
+        db_json[email]={}
 
     def headless_selenium(self):
         options = Options()
         options.headless = True
         self.driver = webdriver.Firefox(options=options)
 
-    def download(self, username,site_name,dp_url): 
+    def decapitate(self):
+        self.driver.quit()
+
+    def download(self, username, site_name, dp_url): 
         count = 0 
         filename = f"{username}'s_{site_name}_dp.jpg" 
         while True: 
@@ -102,27 +101,29 @@ class Scraping_Kit():
         sites = json.load(data)
         username = self.target_email[:self.target_email.index('@')].replace(".","")
         print()
-        print(f"Searching for {username} in about a hundred social media sites:")
+        print(colors.fg.lightred, f"Searching for {username} in about a hundred social media sites:")
         ################# FIX PRINT
         self.results = sherlock(username, sites, print_found_only=True, color=False)
         self.exists = []
         # with open(username + ".csv", "w", newline='', encoding="utf-8") as csv_report:
             # writer = csv.writer(csv_report)
         for site in self.results:
-            if self.results[site]['http_status']!=404:
-                print(self.results[site]['url_user'])
+            if self.results[site]['http_status']!=404 and self.results[site]['url_user'].strip()!="":
+                print(colors.fg.lightgreen, self.results[site]['url_user'])
                 if site in sites_we_need: 
                     self.exists.append(site)
                     # towrite=[site,results[site]['url_user']]
                     # writer.writerow(towrite)
         # return self.exists
-        print()
+        print(colors.reset)
 
     def instagram(self):
         if "Instagram" in self.exists:
+            db_json[email]["Instagram"]={}
             #options = Options()
             #options.headless = True
             #driver = webself.driver.Firefox(options=options)
+            self.reprinter.reprint("Processing Instagram\n",colors.fg.lightred)
             wait = WebDriverWait(self.driver, 20)
             self.driver.get(self.results["Instagram"]["url_user"])
             user_page = self.driver.page_source
@@ -138,8 +139,9 @@ class Scraping_Kit():
                 else:
                     data_file = f"{insta_username}'s_insta_data_1.json"
 
-                print("HD PHOTO : ", insta_data['graphql']['user']['profile_pic_url_hd'])
-                print()
+                self.reprinter.reprint( "HD PHOTO (may not always be accurate): ",colors.fg.lightred)
+                print(colors.fg.lightgreen,insta_data['graphql']['user']['profile_pic_url_hd'])
+                print(colors.reset)
                 filename = f"{insta_username}'s_insta_dp.jpg"
                 # self.download(insta_username,"insta",dp_url)
 
@@ -147,38 +149,50 @@ class Scraping_Kit():
                 # print(json.dumps(insta_data, indent=4))
                 printme = yaml.safe_dump(insta_data, allow_unicode=True, default_flow_style=False)
                 # print(printme)
-            else:
-                print("Sorry this insta account does not exist")
 
     def facebook(self):
         if "Facebook" in self.exists:
             # print(self.results["Facebook"]["url_user"])
+            self.reprinter.reprint("Processing Facebook\n",colors.fg.lightred)
             self.nofb = False
-            self.driver.get(self.results["Facebook"]["url_user"])
+            self.driver.get("http://www.facebook.com")
+            self.driver.find_element_by_xpath('//*[@id="email"]').send_keys("mydbmsproject2001@gmail.com")
+            self.driver.find_element_by_xpath('//*[@id="pass"]').send_keys("g00dpassw0rd")
+            self.driver.find_element_by_xpath('//*[@id="u_0_b"]').click()
+            self.driver.find_element_by_id("userNavigationLabel").click()
+            sleep(2)
+            self.driver.find_element_by_class_name("_54nc").click()
             sleep(3)
+            self.driver.delete_all_cookies()
+            self.driver.get(self.results["Facebook"]["url_user"])
+            self.driver.save_screenshot('logged_in.png')
+            sleep(2)
             page = self.driver.page_source
             html = bs(page,'html.parser')
-            name = html.find("a",{"class":"_2nlw _2nlv"}).text
-            print("NAME : ", name)
+            name = html.find("a",{"class":"_2nlw _2nlv"})
+            if name is not None:
+                name=name.text
             about_keys=list(map(lambda x:x.text,html.find_all("span",{"role":"heading"})))
             about_keys=about_keys[:about_keys.index("Contact Information")]
             about=list(map(lambda x:x.text,html.find_all("ul")))
             about=about[1:len(about_keys)+1]
-            print()
-            print("ABOUT:")
-            print(yaml.safe_dump(dict(zip(about_keys,about)), allow_unicode=True, default_flow_style=False))
-            #print(list(map(lambda x:x.text,html.find_all("th",{"class":"label"}))))
-            #print(list(map(lambda x:x.text,html.find_all("td",{"class":"data"}))))
             likes=dict(zip(list(map(lambda x:x.text,html.find_all("th",{"class":"label"}))),list(map(lambda x:x.text,html.find_all("td",{"class":"data"})))))
+            self.reprinter.reprint("ABOUT:",colors.fg.lightgreen)
+            print()
+            print(yaml.safe_dump(dict(zip(about_keys,about)), allow_unicode=True, default_flow_style=False))
+            print()
+            print("NAME : ", name)
             print()
             print("MIGHT LIKE:")
             print(yaml.safe_dump(likes, allow_unicode=True, default_flow_style=False))
+            print(colors.reset)
         else:
             self.nofb = True
 
     def twitter(self):
         if "Twitter" in self.exists:
             # print(self.results["Twitter"]["url_user"])
+            self.reprinter.reprint("Processing Twitter\n",colors.fg.lightred)
             self.driver.get(self.results["Twitter"]["url_user"])
             sleep(5)
             page = self.driver.page_source
@@ -205,7 +219,7 @@ class Scraping_Kit():
         #         #download(twit_username,"twitter",profile_photo)
 
                   location = html.find("span",{"class":"css-901oao css-16my406 r-111h2gw r-4qtqp9 r-1qd0xha r-ad9z0x r-zso239 r-bcqeeo r-qvutc0"}).text  
-                  print("LIVES IN :", location)
+                  self.reprinter.reprint(f"LIVES IN : {location}\n",colors.fg.lightgreen)
                   print()
             except:
                 pass
@@ -214,23 +228,22 @@ class Scraping_Kit():
     def findName(self):
         if self.nofb:
             # print(self.target_email)
-            reprinter = Reprinter()
             wait = WebDriverWait(self.driver, 20)
             self.driver.get('https://stackoverflow.com/users/signup?ssrc=head&returnurl=%2fusers%2fstory%2fcurrent%27')
-            print("Hunting for the Name :")
-            reprinter.reprint("Headless initialized\n")
+            print(colors.fg.lightred,"Hunting for the Name :")
+            self.reprinter.reprint("Headless initialized\n",colors.fg.lightgreen)
             sleep(5)
             self.driver.find_element_by_xpath('//*[@id="openid-buttons"]/button[1]').click()
             self.driver.find_element_by_xpath('//input[@type="email"]').send_keys('mydbmsproject2001@gmail.com'+Keys.ENTER)
-            reprinter.reprint("email done\n")
+            self.reprinter.reprint("email done\n",colors.fg.lightgreen)
             sleep(3)
             self.driver.find_element_by_xpath('//input[@type="password"]').send_keys('g00dpassw0rd'+Keys.ENTER)
             wait.until(EC.presence_of_element_located((By.ID, "content")))
-            reprinter.reprint("logged in\n")
+            self.reprinter.reprint("logged in\n",colors.fg.lightgreen)
             sleep(2)
             #Adding target as contact to google contacts
             self.driver.get("https://contacts.google.com/")
-            reprinter.reprint("jumped to contacts\n")
+            self.reprinter.reprint("jumped to contacts\n",colors.fg.lightgreen)
             sleep(2)
             wait.until(EC.presence_of_element_located((By.XPATH, '//*[@title="Add new contact"]'))).click()
             #self.diver.find_element_by_xpath('//*[@title="Add new contact"]').click()
@@ -249,18 +262,19 @@ class Scraping_Kit():
             target_contact_soup = bs(page,'html.parser')
             try:
                 target_id = target_contact_soup.find('div',{"class":"NVFbjd LAORIe"}).attrs['data-sourceid']
-                reprinter.reprint("Added contact and got google maps url\n")
+                self.reprinter.reprint("Added contact and got google maps url\n",colors.fg.lightgreen)
 
                 # Bounce to maps and get name
                 maps_url = f"https://www.google.com/maps/contrib/{target_id}"
-                reprinter.reprint("jumped to maps\n")
-                reprinter.reprint(f"Google maps url : {maps_url}\n")
+                self.reprinter.reprint("jumped to maps\n",colors.fg.lightgreen)
+                self.reprinter.reprint(f"{colors.fg.lightgreen}Google maps url : {maps_url}\n")
                 self.driver.get(f"https://www.google.com/maps/contrib/{target_id}")
                 wait.until(EC.presence_of_element_located((By.TAG_NAME, "h1")))
                 name_page=self.driver.page_source
                 name_soup=bs(name_page,'html.parser')
                 name=name_soup.find("h1",{"role":"button","class":"section-profile-header-name section-profile-header-clickable-item"}).text
                 print("Name : ",name)
+                print(colors.reset)
             except Exception as e:
                 self.driver.save_screenshot('error.png')
                 print("Sorry this email is not linked to a google account")

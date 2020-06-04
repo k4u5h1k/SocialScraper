@@ -146,6 +146,7 @@ def get_response(request_future, error_type, social_network, verbose=False, retr
             print_error(errp, "Proxy error:", social_network, verbose, color)
     except requests.exceptions.ConnectionError as errc:
         print_error(errc, "Error Connecting:", social_network, verbose, color)
+
     except requests.exceptions.Timeout as errt:
         print_error(errt, "Timeout Error:", social_network, verbose, color)
     except requests.exceptions.RequestException as err:
@@ -354,7 +355,7 @@ def sherlock(username, site_data, verbose=False, tor=False, unique_tor=False,
             # code indicates that the request was successful (i.e. no 404, or
             # forward to some odd redirect).
             if 200 <= r.status_code < 300:
-                # print_found(social_network, url, response_time, verbose, color)
+                print_found(social_network, url, response_time, verbose, color)
                 exists = "yes"
             else:
                 if not print_found_only:
