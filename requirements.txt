@@ -1,0 +1,8 @@
+pyinquirer
+requests
+requests_futures
+torrequest
+selenium
+webdriver_manager
+colorama
+pyfiglet

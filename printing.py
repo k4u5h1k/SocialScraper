@@ -45,25 +45,20 @@ class colors:
 def intro():
     colorama.init()
     system("clear")
-    system("say welcome to social scraper")
     result = pyfiglet.figlet_format(23*' '+'SOCIAL\n'+17*' '+'SCRAPER') 
     cprint(result, 'yellow')
-    time.sleep(1)
+    time.sleep(0.7)
     r = pyfiglet.figlet_format(17*' '+'USING PYTHON', font = "bubble") 
     cprint(r, 'white')
-    time.sleep(1)
-    n = pyfiglet.figlet_format(29*' '+'Written By\n'+10*' '+'Kaushik Sivashankar(19BAI1052)\n'+22*' '+'Priyanshu(19BAI1077)', font = "digital") 
+    time.sleep(0.7)
+    n = pyfiglet.figlet_format(29*' '+'Written By\n'+10*' '
+            +'Kaushik Sivashankar(19BAI1052)\n'+22*' '+'Priyanshu(19BAI1077)',
+            font = "digital") 
     cprint(n, 'green')
-    time.sleep(1)
+    time.sleep(0.7)
     print(colors.bg.lightgrey,colors.fg.red, "---DISCLAIMER : Please only use this project for educational purposes---")
-    # time.sleep(1)
-    # print(colors.bg.black,colors.fg.cyan, "First Lets understand what scraping is.. :)")
-    # print()
-    # print(colors.bg.lightgrey,colors.fg.purple, "Web scraping is a term used to describe the use of a program or algorithm to extract and process large amounts of data from the web. For this project we have scraped some of the major social platforms including Facebook and Twitter.")
     print(colors.reset)
-    # c = pyfiglet.figlet_format('Now Lets scrap', font = "slant")
-    # cprint(c,'blue')
-    time.sleep(1)
+    time.sleep(0.7)
 
 
 def inred(r):

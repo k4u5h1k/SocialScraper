@@ -34,8 +34,8 @@ class Scraping_Kit():
     def __init__(self, email):
         self.target_email=email
         self.reprinter = Reprinter()
-        db_json = {}
-        db_json[email]={}
+        self.db_json = {}
+        self.db_json[self.target_email]={}
 
     def headless_selenium(self):
         options = Options()
@@ -119,7 +119,7 @@ class Scraping_Kit():
 
     def instagram(self):
         if "Instagram" in self.exists:
-            db_json[email]["Instagram"]={}
+            self.db_json[self.target_email]["Instagram"] = {}
             #options = Options()
             #options.headless = True
             #driver = webself.driver.Firefox(options=options)
@@ -139,7 +139,7 @@ class Scraping_Kit():
                 else:
                     data_file = f"{insta_username}'s_insta_data_1.json"
 
-                self.reprinter.reprint( "HD PHOTO (may not always be accurate): ",colors.fg.lightred)
+                self.reprinter.reprint(" HD PHOTO (may not always be accurate): \n",colors.fg.lightred)
                 print(colors.fg.lightgreen,insta_data['graphql']['user']['profile_pic_url_hd'])
                 print(colors.reset)
                 filename = f"{insta_username}'s_insta_dp.jpg"
@@ -147,19 +147,23 @@ class Scraping_Kit():
 
                 #json.dump(insta_data, open(data_file,"w+"), indent=4)
                 # print(json.dumps(insta_data, indent=4))
-                printme = yaml.safe_dump(insta_data, allow_unicode=True, default_flow_style=False)
+                #printme = yaml.safe_dump(insta_data, allow_unicode=True, default_flow_style=False)
+                self.db_json[self.target_email]["Instagram"].update(insta_data)
                 # print(printme)
 
     def facebook(self):
         if "Facebook" in self.exists:
+            wait = WebDriverWait(self.driver, 20)
+            self.db_json[self.target_email]["Facebook"] = {}
             # print(self.results["Facebook"]["url_user"])
-            self.reprinter.reprint("Processing Facebook\n",colors.fg.lightred)
+            self.reprinter.reprint(" Processing Facebook\n",colors.fg.lightred)
             self.nofb = False
             self.driver.get("http://www.facebook.com")
             self.driver.find_element_by_xpath('//*[@id="email"]').send_keys("mydbmsproject2001@gmail.com")
             self.driver.find_element_by_xpath('//*[@id="pass"]').send_keys("g00dpassw0rd")
-            self.driver.find_element_by_xpath('//*[@id="u_0_b"]').click()
-            self.driver.find_element_by_id("userNavigationLabel").click()
+            wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="u_0_b"]'))).click()
+            sleep(2)
+            wait.until(EC.element_to_be_clickable((By.ID, "pageLoginAnchor"))).click()
             sleep(2)
             self.driver.find_element_by_class_name("_54nc").click()
             sleep(3)
@@ -177,22 +181,25 @@ class Scraping_Kit():
             about=list(map(lambda x:x.text,html.find_all("ul")))
             about=about[1:len(about_keys)+1]
             likes=dict(zip(list(map(lambda x:x.text,html.find_all("th",{"class":"label"}))),list(map(lambda x:x.text,html.find_all("td",{"class":"data"})))))
-            self.reprinter.reprint("ABOUT:",colors.fg.lightgreen)
+            self.reprinter.reprint("ABOUT:",colors.fg.lightred)
             print()
-            print(yaml.safe_dump(dict(zip(about_keys,about)), allow_unicode=True, default_flow_style=False))
+            print(colors.fg.lightgreen,yaml.safe_dump(dict(zip(about_keys,about)), allow_unicode=True, default_flow_style=False))
             print()
-            print("NAME : ", name)
+            print(colors.fg.lightgreen,"NAME : ", name)
             print()
-            print("MIGHT LIKE:")
-            print(yaml.safe_dump(likes, allow_unicode=True, default_flow_style=False))
+            print(colors.fg.lightred,"MIGHT LIKE:")
+            print(colors.fg.lightgreen,yaml.safe_dump(likes, allow_unicode=True, default_flow_style=False))
             print(colors.reset)
+            self.db_json[self.target_email]["Facebook"].update(dict(zip(about_keys,about)), allow_unicode=True, default_flow_style=False)
+            self.db_json[self.target_email]["Facebook"].update(likes)
         else:
             self.nofb = True
 
     def twitter(self):
         if "Twitter" in self.exists:
+            self.db_json[self.target_email]["Twitter"]={}
             # print(self.results["Twitter"]["url_user"])
-            self.reprinter.reprint("Processing Twitter\n",colors.fg.lightred)
+            self.reprinter.reprint(" Processing Twitter\n",colors.fg.lightred)
             self.driver.get(self.results["Twitter"]["url_user"])
             sleep(5)
             page = self.driver.page_source
@@ -218,9 +225,11 @@ class Scraping_Kit():
         #         profile_photo = profile_photo ), indent=4))
         #         #download(twit_username,"twitter",profile_photo)
 
-                  location = html.find("span",{"class":"css-901oao css-16my406 r-111h2gw r-4qtqp9 r-1qd0xha r-ad9z0x r-zso239 r-bcqeeo r-qvutc0"}).text  
-                  self.reprinter.reprint(f"LIVES IN : {location}\n",colors.fg.lightgreen)
-                  print()
+                location = html.find("span",{"class":"css-901oao css-16my406 r-111h2gw r-4qtqp9 r-1qd0xha r-ad9z0x r-zso239 r-bcqeeo r-qvutc0"}).text  
+                self.reprinter.reprint("\n",colors.fg.lightgreen)
+                print(f"{colors.fg.lightred} LIVES IN :{colors.fg.lightgreen} {location}")
+                print(colors.reset)
+                self.db_json[self.target_email]["Twitter"]["location"]=location
             except:
                 pass
 
@@ -273,11 +282,33 @@ class Scraping_Kit():
                 name_page=self.driver.page_source
                 name_soup=bs(name_page,'html.parser')
                 name=name_soup.find("h1",{"role":"button","class":"section-profile-header-name section-profile-header-clickable-item"}).text
-                print("Name : ",name)
+                self.db_json[self.target_email]["Name"] = name
+                print(colors.fg.lightred,"Name : ",colors.fg.lightgreen, name)
                 print(colors.reset)
             except Exception as e:
                 self.driver.save_screenshot('error.png')
                 print("Sorry this email is not linked to a google account")
+
+    def write_to_db(self):
+        is_not_empty=True
+        try:
+            with open("database.json","r+") as handle:
+                existing = json.load(handle)
+        except:
+            is_not_empty=False
+            existing=""
+        if is_not_empty :
+            self.db_json.update(existing)
+        if self.target_email not in existing:
+            json.dump(self.db_json,open("database.json","w+"), indent=2)
+            print(colors.fg.green,"Successfully wrote session to database")
+        else:
+            print(colors.fg.yellow,"Session already in database")
+        print(colors.fg.red,"Exiting")
+
+
+
+    
 
 
 if __name__=="__main__":
